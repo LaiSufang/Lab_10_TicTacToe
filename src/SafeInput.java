@@ -2,114 +2,132 @@ import java.util.Scanner;
 
 public class SafeInput {
 
-    public static String getNonZeroLenString(Scanner pipe, String prompt) {
-        String retString = "";  // Set this to zero length. Loop runs until it isn’t
+    // get non-empty string input using scanner:
+    public static String getNonZeroLenString(Scanner scanner, String prompt) {
+        String retString;
         do {
             System.out.print(prompt); // show prompt add space
-            retString = pipe.nextLine();
-        } while (retString.length() == 0);
+            retString = scanner.nextLine();
+        } while (retString.isBlank());
+        // same as: while (retString.trim().length() == 0); //  length() method in Java counts all characters in the string, including white spaces.
+        // same as: while (retString.trim().isEmpty()); // isEmpty() method in Java checks if a string has a length of 0. It does not ignore or trim white spaces.
 
-        return retString;
+        return retString.trim();
 
     }
 
-    public static int getInt(Scanner pipe, String prompt) {
+    // get a valid integer input using scanner:
+    public static int getInt(Scanner scanner, String prompt) {
         int intNum = 0;
         boolean validInt = false;
         do {
             System.out.print(prompt);
-            if (pipe.hasNextInt()) {
-                intNum = pipe.nextInt();
+            if (scanner.hasNextInt()) {
+                intNum = scanner.nextInt();
                 validInt = true;
             } else {
                 System.out.println("Invalid input. Please enter an integer.");
-                pipe.next();
+                scanner.next();
             }
         } while (!validInt);
 
         return intNum;
     }
 
-    public static double getDouble(Scanner pipe, String prompt) {
+    // get a valid double input using scanner:
+    public static double getDouble(Scanner scanner, String prompt) {
         double doubleNum = 0;
         boolean validDouble = false;
         do {
             System.out.print(prompt);
-            if (pipe.hasNextDouble()) {
-                doubleNum = pipe.nextDouble();
+            if (scanner.hasNextDouble()) {
+                doubleNum = scanner.nextDouble();
                 validDouble = true;
             } else {
                 System.out.println("Invalid input. Please enter a decimal number.");
-                pipe.next();
+                scanner.next();
             }
         } while (!validDouble);
 
         return doubleNum;
     }
 
-    public static int getRangedInt(Scanner pipe, String prompt, int low, int high) {
+    // get a valid integer from a given range:
+    public static int getRangedInt(Scanner scanner, String prompt, int low, int high) {
         int userInt = 0;
         boolean validInt = false;
         do {
             System.out.print(prompt);
-            if (pipe.hasNextInt()) {
-                userInt = pipe.nextInt();
-                pipe.nextLine();
+            if (scanner.hasNextInt()) {
+                userInt = scanner.nextInt();
                 if (userInt >= low && userInt <= high) {
                     validInt = true;
                 } else {
                     System.out.println("Invalid input. Please enter an integer between " + low + " and " + high + ".");
+                    scanner.nextLine();
                 }
+            } else {
+                System.out.println("Invalid input. Please enter an integer.");
+                scanner.nextLine();
             }
-        }
-        while (!validInt);
+        } while (!validInt);
+
         return userInt;
     }
 
-    public static double getRangedDouble(Scanner pipe, String prompt, double low, double high) {
+    // get a valid double from a given range:
+    public static double getRangedDouble(Scanner scanner, String prompt, double low, double high) {
         double inputDouble = 0;
         boolean validDouble = false;
         do {
             System.out.print(prompt);
-            if (pipe.hasNextDouble()) {
-                inputDouble = pipe.nextDouble();
+            if (scanner.hasNextDouble()) {
+                inputDouble = scanner.nextDouble();
                 if (inputDouble >= low && inputDouble <= high) {
                     validDouble = true;
                 } else {
                     System.out.println("Invalid input. Please enter a decimal number between " + low + " and " + high + ".");
+                    scanner.nextLine();
                 }
             }
-        }
-        while (!validDouble);
+            else  {
+                System.out.println("Invalid input. Please enter an integer.");
+                scanner.nextLine();
+            }
+        } while (!validDouble);
+
         return inputDouble;
     }
 
-    public static boolean getYNConfirm(Scanner pipe, String prompt) {
-        String userResponse = "";
+    // get a valid Y or N response from users:
+    public static boolean getYNConfirm(Scanner scanner, String prompt) {
+        String userResponse;
         boolean validResponse = false;
         boolean confirm = false;
         do {
             System.out.print(prompt);
-            userResponse = pipe.nextLine();
-            if (userResponse.equalsIgnoreCase("y") || userResponse.equalsIgnoreCase("n")) {
+            userResponse = scanner.nextLine();
+            if (userResponse.trim().equalsIgnoreCase("y") || userResponse.trim().equalsIgnoreCase("n")) {
                 validResponse = true;
-                if (userResponse.equalsIgnoreCase("y")) {
+                if (userResponse.trim().equalsIgnoreCase("y")) {
                     confirm = true;
                 }
             }
-            else {
-                System.out.println("Invalid input. Please enter 'y' or 'n'.");
-            }
+//            else {
+//                System.out.println("Invalid input. Please enter 'y' or 'n'.");
+//            }
         } while (!validResponse);
+
         return confirm;
     }
 
-    public static void getRegExString(Scanner pipe, String prompt, String regEx) {
-        String retString = "";
+    // get a string in a given patten:
+    public static void getRegExString(Scanner scanner, String prompt, String regEx) {
+        String retString;
         boolean validString = false;
         do {
             System.out.print(prompt);
-            retString = pipe.nextLine();
+            retString = scanner.nextLine();
             if (retString.matches(regEx)) {
                 validString = true;
             } else {
@@ -118,22 +136,25 @@ public class SafeInput {
         } while (!validString);
     }
 
+    // formatting a header:
     public static void prettyHeader(String msg) {
         int msgLength = msg.length();
-        int space = (60 - msgLength - 6) / 2;
+        int whiteSpaces = (60 - msgLength - 6) / 2;
+        // line 1:
         for (int i = 0; i < 60; i++) {
             System.out.print("*");
         }
-        System.out.println();
-        System.out.print("***");
-        for (int i = 0; i < space; i++) {
+        // line 2:
+        System.out.print("\n***");
+        for (int i = 0; i < whiteSpaces; i++) {
             System.out.print(" ");
         }
         System.out.print(msg);
-        for (int i = 0; i < space; i++) {
+        for (int i = 0; i < whiteSpaces; i++) {
             System.out.print(" ");
         }
         System.out.println("***");
+        // line 3:
         for (int i = 0; i < 60; i++) {
             System.out.print("*");
         }
@@ -141,5 +162,3 @@ public class SafeInput {
 
     }
 }
-
-

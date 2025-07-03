@@ -1,189 +1,166 @@
 import java.util.Scanner;
 
-public class TicTacToe {
+/// /// a console-based Tic Tac Toe program that allows two users to play the game as many times as they want
 
+public class TicTacToe {
     private static final int ROW = 3;
     private static final int COL = 3;
-    private static String board [][] = new String[ROW][COL];
+    private static final String[][] board = new String[ROW][COL];
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        String rowMovePrompt = "Please enter the row number of your move: ";
-        String colMovePrompt = "Please enter the column number of your move: ";
-        String player;
+        Scanner in = new Scanner(System.in);
+        String currentPlayer = "X";
+        int moveCount = 0;
+        boolean continuePlay;
+        boolean playing;
         int rowMove;
         int colMove;
-        int moveCnt;
-        boolean isEnteredMoveValid;
-        boolean isWinOrTie = false;
+        final int MOVE_FOR_WIN = 5;
+        final int MOVE_FOR_TIE = 8;
+        final int ALL_MOVES = ROW * COL;
 
+        // Clear the board before game starts
+        clearBoard();
+
+        // Display the game board
+        System.out.println("Welcome to the Tic Tac Toe!");
+        display();
+
+        // entire game loop
         do {
-            // 1. Clear the board, move count to 0 and set the player to X (since X always moves first)
-            clearBoard();
-            moveCnt = 0;
-            player = "X";
-            // 2. Show the board, get the coordinates for the move which should be 1 – 3 for the row and col
-            display();
             do {
-                System.out.println("Player " + player + ":");
+                playing = true;
+
+                //convert the player move coordinates to the array indices which are 0 – 2 by subtracting 1
+                //loop until the converted player coordinates are a valid move
+                //if appropriate check for a win or a tie (i.e. if it is possible for a win or a tie at this point in the game, check for it.)
+                //If there is a win or tie announce it and then prompt the players to play again.
+                //Toggle the player (i.e. X becomes O, O becomes X)
                 do {
-                    rowMove = SafeInput.getRangedInt(scanner, rowMovePrompt, 1, ROW);
-                    colMove = SafeInput.getRangedInt(scanner, colMovePrompt, 1, COL);
-                    // 3. convert the player move to the array indices (which are 0 – 2) by subtracting 1
-                    rowMove--;
-                    colMove--;
-                    // 4. loop (through #2 and #3) until the converted player coordinates are a valid move
-                    isEnteredMoveValid = isValidMove(rowMove,colMove);
-                    if (!isEnteredMoveValid) {
-                        System.out.println("Move has already been taken, please choose another move!");
-                    }
-                } while (!isEnteredMoveValid);
+                    System.out.println("Player " + currentPlayer);
+                    rowMove = SafeInput.getRangedInt(in, "Please enter your move on row [0-2]: ", 0, ROW);
+                    colMove = SafeInput.getRangedInt(in, "Please enter your move on column [0-2]: ", 0, COL);
+                } while (!isValidMove(rowMove, colMove));
 
-                // 5. Record the move on the board and increment the move counter
-                board[rowMove][colMove] = player;
-                moveCnt++;
+                board[rowMove][colMove] = currentPlayer;
                 display();
-                // 6. if appropriate check for a win or a tie (i.e. if it is possible for a win or a tie at this point in the game, check for it.)
-                if(moveCnt > 4) {
-                    if(isWin(player)) {
-                        isWinOrTie = true;
-                        System.out.println("Player " + player + " wins!");
+                moveCount++;
+
+                // toggle players between X and O
+                if (currentPlayer.equals("X")) {
+                    currentPlayer = "O";
+                } else {
+                    currentPlayer = "X";
+                }
+
+                // check wins
+                if (moveCount >= MOVE_FOR_WIN) {
+                    if (isWin("X")) {
+                        System.out.println("Player X win!");
+                        playing = false;
+                        moveCount = 0;
                     }
-                    else {
-                        if(moveCnt > 6) {
-                            if(isTie()) {
-                                isWinOrTie = true;
-                                System.out.println("Game is tie!");
-                            }
+                    else if (isWin("O")) {
+                        System.out.println("Player O win!");
+                        playing = false;
+                        moveCount = 0;
+                    }
+                    else if (!(isWin("X") && isWin("O")) && moveCount >= MOVE_FOR_TIE){ // FIX TIEs
+                        if (moveCount < ALL_MOVES ) {
+                            System.out.println("All the rows, columns, and diagonal win opportunities are blocked, no player is gonna win!");
                         }
+                        else {
+                            System.out.println("No more moves, it's a full board tie!");
+                        }
+                        playing = false;
+                        moveCount = 0;
                     }
                 }
-                // 8. Toggle the player for the next move (i.e. X becomes O, O becomes X)
-                if(player.equals("X")) {
-                    player = "O";
-                }
-                else {
-                    player = "X";
-                }
-            } while (!isWinOrTie);
-            // 7. If there is a win or tie announce it and then prompt the players to play again or exit.
-            isWinOrTie = false; // reset game result for next game
-        } while (SafeInput.getYNConfirm(scanner, "Do you want to play again[Y/N]?"));
+
+            } while (playing);
+
+            in.nextLine();
+            continuePlay = SafeInput.getYNConfirm(in, "Do you want to play again[Y/N]: ");
+            if (continuePlay) {
+                clearBoard();
+//                playing = true;
+            }
+        } while (continuePlay);
     }
 
+    /// /// static methods
+    // sets all the board elements to a space
     private static void clearBoard() {
-        for(int row = 0; row < ROW; row++) {
-            for(int col = 0; col < COL; col++) {
-                board[row][col] = " "; // make this cell a space
+        for (int i = 0; i < ROW; i++) {
+            for (int j = 0; j < COL; j++) {
+                board[i][j] = " ";
             }
         }
     }
-
+    // shows the Tic Tac Toe game used as part of the prompt for the users move choice…
     private static void display() {
-        for(int row = 0; row < ROW; row++) {
-            for(int col = 0; col < COL; col++) {
-                System.out.print(board[row][col]);
-                if(col < 2) {
-                    System.out.print("|");
-                }
+        int r, c;
+        for (r = 0; r < ROW; r++) {
+            for (c = 0; c < COL - 1; c++) {
+                System.out.print(board[r][c] + "|");
             }
-            System.out.println();
+            System.out.println(board[r][c] + "|");
         }
     }
-
+    // returns true if there is a space at the given proposed move coordinates which means it is a legal move.
     private static boolean isValidMove(int row, int col) {
-        // is it a space?
         return board[row][col].equals(" ");
     }
-
-    private static boolean isWin(String player) {
-        if(isColWin(player) || isRowWin(player) || isDiagonalWin(player)) {
-            return true;
-        }
-        return false;
+    // checks to see if there is a win state on the current board for the specified player (X or O)
+    // This method in turn calls three additional methods that break down the 3 kinds of wins that are possible.
+    private static boolean isWin(String currentPlayer){
+        return isColWin(currentPlayer) || isRowWin(currentPlayer) || isDiagonalWin(currentPlayer);
     }
-
-    private static boolean isColWin(String player) {
-        for(int col = 0; col < COL; col++) {
-            if(board[0][col].equals(player) && board[1][col].equals(player) && board[2][col].equals(player)) {
+    // checks for a col win for specified player
+    private static boolean isColWin(String currentPlayer) {
+        for (int i = 0; i < COL-1; i++) {
+            if (board[0][i].equals(currentPlayer) && board[1][i].equals(currentPlayer) && board[2][i].equals(currentPlayer)) {
                 return true;
             }
         }
-        return false; // no col win
+        return false;
     }
-
-    private static boolean isRowWin(String player) {
-        for(int row = 0; row < ROW; row++) {
-            if(board[row][0].equals(player) && board[row][1].equals(player) && board[row][2].equals(player)) {
+    // checks for a row win for the specified player
+    private static boolean isRowWin(String currentPlayer) {
+        for(int i=0; i < ROW-1; i++)
+        {
+            if(board[i][0].equals(currentPlayer) && board[i][1].equals(currentPlayer) && board[i][2].equals(currentPlayer))
+            {
                 return true;
             }
         }
         return false; // no row win
     }
-
-    private static boolean isDiagonalWin(String player) {
-        if(board[0][0].equals(player) && board[1][1].equals(player) && board[2][2].equals(player)) {
+    // checks for a diagonal win for the specified player
+    private static boolean isDiagonalWin(String currentPlayer) {
+        if ((board[0][0].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[2][2].equals(currentPlayer)) ||
+                (board[2][0].equals(currentPlayer) && board[1][1].equals(currentPlayer) && board[0][2].equals(currentPlayer))) {
             return true;
         }
-        else if (board[0][2].equals(player) && board[1][1].equals(player) && board[2][0].equals(player)) {
-            return true;
-        }
-        return false; // no diagonal win
+        return false;
     }
+    // checks for a tie condition:
+    /// all spaces on the board are filled
+    /// OR there is an X and an O in every win vector (i.e. all possible 8 wins are blocked by having both and X and an O in them.)
+    /// if we have 9 moves (which fills the board) and we don’t have a win, then we have a full board TIE.
+    /// So after checking for a win and not getting one, if we have 9 moves then the game is over with a full board tie.
+    /// The other kind of TIE is when we have not filled the board but neither player can win.
+    /// We can have this sort of TIE after 7 moves. To have this kind of tie, each of the 8 win vectors (row, col, diagonal) must be eliminated.
+    /// If a win vector contains both and X and an O, that vector is eliminated. If all are eliminated then no win is possible even though we have open cells still.
 
-    private static boolean isTie() {
-        boolean isTie = false;
-        boolean hasX = false;
-        boolean hasO = false;
-        int eliminatedRows = 0;
-        int eliminatedCols = 0;
-        int eliminatedDiagonals = 0;
-
-        // check all rows
-        for(int row = 0; row < ROW; row++) {
-            for(int col = 0; col < COL; col++) {
-                if(board[row][col].equals("X")) {
-                    hasX = true;
-                }
-                if(board[row][col].equals("O")) {
-                    hasO = true;
-                }
-            }
-            if (hasX && hasO) {
-                eliminatedRows++;
-            }
-            // reset hasX and hasO for next row
-            hasX = false;
-            hasO = false;
-        }
-        // check all columns
-        for(int col = 0; col < COL; col++) {
-            for(int row = 0; row < ROW; row++) {
-                if(board[row][col].equals("X")) {
-                    hasX = true;
-                }
-                if(board[row][col].equals("O")) {
-                    hasO = true;
-                }
-            }
-            if (hasX && hasO) {
-                eliminatedCols++;
-            }
-            // reset hasX and hasO for next column
-            hasX = false;
-            hasO = false;
-        }
-        // check both diagonals
-        if((board[0][0].equals("X") || board[1][1].equals("X") || board[2][2].equals("X")) && (board[0][0].equals("O") || board[1][1].equals("O") || board[2][2].equals("O"))) {
-            eliminatedDiagonals++;
-        }
-        if((board[0][2].equals("X") || board[1][1].equals("X") || board[2][0].equals("X")) && (board[0][2].equals("O") || board[1][1].equals("O") || board[2][0].equals("O"))) {
-            eliminatedDiagonals++;
-        }
-        if(eliminatedRows == 3 && eliminatedCols == 3 && eliminatedDiagonals == 2) {
-            isTie = true;
-        }
-
-        return isTie;
-    }
+//    private static boolean isTie() {
+//        for (int i = 0; i < ROW; i++) {
+//            for (int j = 0; j < COL; j++) {
+//                if (board[i][j].equals(" ")) {
+//                    return false;
+//                }
+//            }
+//        }
+//        return !isWin("X") && !isWin("O");
+//    }
 }
