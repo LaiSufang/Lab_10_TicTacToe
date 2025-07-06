@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.Scanner;
 
 /// /// a console-based Tic Tac Toe program that allows two users to play the game as many times as they want
@@ -9,15 +10,17 @@ public class TicTacToe {
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
+        Random rand = new Random();
+
         String currentPlayer = "X";
         int moveCount = 0;
         boolean continuePlay;
         boolean playing;
         int rowMove;
         int colMove;
-        final int MOVE_FOR_WIN = 5;
-        final int MOVE_FOR_TIE = 8;
-        final int ALL_MOVES = ROW * COL;
+//        final int MOVE_FOR_WIN = 5;
+//        final int MOVE_FOR_TIE = 6;
+//        final int ALL_MOVES = ROW * COL;
 
         // Clear the board before game starts
         clearBoard();
@@ -37,14 +40,40 @@ public class TicTacToe {
                 //If there is a win or tie announce it and then prompt the players to play again.
                 //Toggle the player (i.e. X becomes O, O becomes X)
                 do {
-                    System.out.println("Player " + currentPlayer);
-                    rowMove = SafeInput.getRangedInt(in, "Please enter your move on row [0-2]: ", 0, ROW);
-                    colMove = SafeInput.getRangedInt(in, "Please enter your move on column [0-2]: ", 0, COL);
+                    System.out.print("Player " + currentPlayer + "'s move. ");
+//                    rowMove = SafeInput.getRangedInt(in, "Please enter your move on row [0-2]: ", 0, ROW);
+//                    colMove = SafeInput.getRangedInt(in, "Please enter your move on column [0-2]: ", 0, COL);
+                    rowMove = rand.nextInt(3);
+                    colMove = rand.nextInt(3);
                 } while (!isValidMove(rowMove, colMove));
 
                 board[rowMove][colMove] = currentPlayer;
+                System.out.println("Row-Col: " + rowMove  + colMove);
                 display();
                 moveCount++;
+
+                // check wins when move counts reaches 5
+                if (moveCount >= 5) {
+                    if (isWin(currentPlayer)) {
+                        System.out.println("Player " + currentPlayer +" win!");
+                        playing = false;
+                        moveCount = 0;
+                        currentPlayer = "X";
+                    }
+                    else {
+                        if (isSixStepEarlyTie()) {
+                            System.out.println("Early tie! All the row, column, and diagonal win opportunities are blocked, no player is gonna win!");
+                            playing = false;
+                            moveCount = 0;
+                            currentPlayer = "X";
+                        } else if (moveCount == 9) {
+                            System.out.println("No more moves, it's a full board tie!");
+                            playing = false;
+                            moveCount = 0;
+                            currentPlayer = "X";
+                        }
+                    }
+                }
 
                 // toggle players between X and O
                 if (currentPlayer.equals("X")) {
@@ -53,33 +82,9 @@ public class TicTacToe {
                     currentPlayer = "X";
                 }
 
-                // check wins
-                if (moveCount >= MOVE_FOR_WIN) {
-                    if (isWin("X")) {
-                        System.out.println("Player X win!");
-                        playing = false;
-                        moveCount = 0;
-                    }
-                    else if (isWin("O")) {
-                        System.out.println("Player O win!");
-                        playing = false;
-                        moveCount = 0;
-                    }
-                    else if (!(isWin("X") && isWin("O")) && moveCount >= MOVE_FOR_TIE){ // FIX TIEs
-                        if (moveCount < ALL_MOVES ) {
-                            System.out.println("All the rows, columns, and diagonal win opportunities are blocked, no player is gonna win!");
-                        }
-                        else {
-                            System.out.println("No more moves, it's a full board tie!");
-                        }
-                        playing = false;
-                        moveCount = 0;
-                    }
-                }
-
             } while (playing);
 
-            in.nextLine();
+//            in.nextLine();
             continuePlay = SafeInput.getYNConfirm(in, "Do you want to play again[Y/N]: ");
             if (continuePlay) {
                 clearBoard();
@@ -118,7 +123,7 @@ public class TicTacToe {
     }
     // checks for a col win for specified player
     private static boolean isColWin(String currentPlayer) {
-        for (int i = 0; i < COL-1; i++) {
+        for (int i = 0; i < 3; i++) {
             if (board[0][i].equals(currentPlayer) && board[1][i].equals(currentPlayer) && board[2][i].equals(currentPlayer)) {
                 return true;
             }
@@ -127,7 +132,7 @@ public class TicTacToe {
     }
     // checks for a row win for the specified player
     private static boolean isRowWin(String currentPlayer) {
-        for(int i=0; i < ROW-1; i++)
+        for(int i= 0; i < 3; i++)
         {
             if(board[i][0].equals(currentPlayer) && board[i][1].equals(currentPlayer) && board[i][2].equals(currentPlayer))
             {
@@ -153,14 +158,15 @@ public class TicTacToe {
     /// We can have this sort of TIE after 7 moves. To have this kind of tie, each of the 8 win vectors (row, col, diagonal) must be eliminated.
     /// If a win vector contains both and X and an O, that vector is eliminated. If all are eliminated then no win is possible even though we have open cells still.
 
-//    private static boolean isTie() {
-//        for (int i = 0; i < ROW; i++) {
-//            for (int j = 0; j < COL; j++) {
-//                if (board[i][j].equals(" ")) {
-//                    return false;
-//                }
-//            }
-//        }
-//        return !isWin("X") && !isWin("O");
-//    }
+    private static boolean isSixStepEarlyTie() {
+        for (int i = 0; i < ROW; i++) {
+            for (int j = 0; j < COL; j++) {
+                if (board[0][0].equals("X") && board[1][2].equals("X") && board[2][0].equals("X")
+                && board[0][2].equals("O") && board[1][0].equals("O")  && board[2][2].equals("O")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
